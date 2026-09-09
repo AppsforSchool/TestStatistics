@@ -1,0 +1,322 @@
+/* ==========================================================
+   デザイントークン
+   ========================================================== */
+:root {
+  --primary: #4356c4;
+  --primary-dark: #313f96;
+  --bg: #eef0f7;
+  --surface: #ffffff;
+  --surface-alt: #f4f5fb;
+  --border: #dcdfec;
+  --text: #262b3d;
+  --text-muted: #767c94;
+  --radius-md: 10px;
+  --radius-lg: 18px;
+  --shadow-sm: 0 1px 3px rgba(38, 43, 61, 0.08);
+  --shadow-md: 0 6px 16px rgba(38, 43, 61, 0.10);
+  --shadow-lg: 0 14px 34px rgba(38, 43, 61, 0.18);
+  --ease: cubic-bezier(.4, 0, .2, 1);
+
+  /* 教科カラー（お手元の得点表に合わせた配色） */
+  --c-kokugo: #d8434b;
+  --c-shakai: #b93fb3;
+  --c-sugaku: #2f7fd6;
+  --c-rika: #2f9e57;
+  --c-eigo: #dd8b2e;
+  --c-hoken: #2aa3ae;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "BIZ UDGothic", "Hiragino Sans", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.num, input[type="number"], td.num-cell, .stat-value {
+  font-family: "Signika Negative", "BIZ UDGothic", sans-serif;
+}
+
+h1, h2 { font-family: "BIZ UDGothic", sans-serif; margin: 0; }
+
+/* ==========================================================
+   ヘッダー
+   ========================================================== */
+#app-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.header-inner {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.header-eyebrow {
+  margin: 0 0 0.1rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+.header-title-area h1 {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.header-btn {
+  font-family: "BIZ UDGothic", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.55rem 0.85rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border);
+  background: var(--surface-alt);
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color .15s var(--ease), border-color .15s var(--ease);
+}
+.header-btn:hover { background: var(--border); }
+.header-btn-file { display: inline-flex; align-items: center; }
+
+/* ==========================================================
+   レイアウト
+   ========================================================== */
+main {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 1.1rem 1.1rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.panel {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1.2rem 1.2rem 1.4rem;
+}
+.panel-title {
+  font-size: 1.02rem;
+  font-weight: 700;
+  margin-bottom: 0.65rem;
+}
+.panel-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: -0.35rem 0 0.9rem;
+  line-height: 1.55;
+}
+
+footer {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 0 1.1rem 2.5rem;
+  text-align: center;
+}
+footer p {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* ==========================================================
+   テスト選択タブ
+   ========================================================== */
+.test-tabs {
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding-bottom: 0.7rem;
+  margin-bottom: 0.2rem;
+  scrollbar-width: thin;
+}
+.test-tab {
+  flex-shrink: 0;
+  font-family: "BIZ UDGothic", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color .15s var(--ease), color .15s var(--ease), border-color .15s var(--ease);
+}
+.test-tab:hover { border-color: var(--primary); }
+.test-tab.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+.test-tab .tab-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.55;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+}
+
+/* ==========================================================
+   入力カード
+   ========================================================== */
+.input-card {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1rem 0.4rem;
+}
+.input-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.7rem;
+}
+.input-card-head h2 { font-size: 1rem; font-weight: 700; }
+.save-indicator {
+  font-size: 0.74rem;
+  color: var(--primary);
+  opacity: 0;
+  transition: opacity .25s var(--ease);
+}
+.save-indicator.show { opacity: 1; }
+
+.input-table { width: 100%; border-collapse: collapse; }
+.input-table th {
+  text-align: left;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 0.3rem 0.4rem;
+  border-bottom: 1.5px solid var(--border);
+}
+.input-table td {
+  padding: 0.45rem 0.4rem;
+  border-bottom: 1px solid var(--border);
+}
+.input-table tr:last-child td { border-bottom: none; }
+.input-table .col-num { text-align: right; width: 38%; }
+.input-table input[type="number"] {
+  width: 100%;
+  text-align: right;
+  font-size: 0.95rem;
+  padding: 0.4rem 0.5rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  -moz-appearance: textfield;
+}
+.input-table input[type="number"]::-webkit-outer-spin-button,
+.input-table input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.input-table input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(67, 86, 196, 0.15);
+}
+
+/* 教科ラベル */
+.subject-label { font-weight: 700; white-space: nowrap; }
+.s-kokugo { color: var(--c-kokugo); }
+.s-shakai { color: var(--c-shakai); }
+.s-sugaku { color: var(--c-sugaku); }
+.s-rika   { color: var(--c-rika); }
+.s-eigo   { color: var(--c-eigo); }
+.s-hoken  { color: var(--c-hoken); }
+.s-total, .s-avg { color: var(--text); }
+
+/* ==========================================================
+   得点表（テーブル共通）
+   ========================================================== */
+.table-scroll { overflow-x: auto; }
+.score-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 480px;
+  font-size: 0.86rem;
+}
+.score-table th, .score-table td {
+  border: 1px solid var(--border);
+  padding: 0.55rem 0.6rem;
+}
+.score-table thead th {
+  background: var(--surface-alt);
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+}
+.score-table .col-subject { text-align: left; min-width: 6.2em; }
+.score-table td.col-num, .score-table th.col-num { text-align: right; white-space: nowrap; }
+.score-table tbody tr:nth-child(even) { background: rgba(244, 245, 251, 0.5); }
+.score-table tr.row-total td, .score-table tr.row-total th {
+  background: var(--surface-alt);
+  font-weight: 700;
+}
+.score-table tr.row-avg td, .score-table tr.row-avg th {
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.score-table tr.row-inactive td { background: repeating-linear-gradient(
+    45deg, #f1f2f8, #f1f2f8 6px, #e9eaf3 6px, #e9eaf3 12px
+  ); color: var(--text-muted); }
+.score-table td.cell-inactive {
+  background: repeating-linear-gradient(
+    45deg, #f1f2f8, #f1f2f8 6px, #e9eaf3 6px, #e9eaf3 12px
+  );
+  color: var(--text-muted);
+  text-align: center;
+}
+.score-table td.cell-dash { color: var(--text-muted); text-align: center; }
+.score-table td.diff-pos { color: var(--c-rika); }
+.score-table td.diff-neg { color: var(--c-kokugo); }
+
+.overall-table th.stat-head { background: #e9ebf7; }
+.overall-table td.stat-cell { background: #f6f7fb; font-weight: 700; }
+
+/* ==========================================================
+   データ管理パネル
+   ========================================================== */
+.danger-btn {
+  font-family: "BIZ UDGothic", sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid #eec9c9;
+  background: #fdf3f3;
+  color: #c1453f;
+  cursor: pointer;
+  transition: background-color .15s var(--ease);
+}
+.danger-btn:hover { background: #fbe4e3; }
+
+/* ==========================================================
+   レスポンシブ
+   ========================================================== */
+@media (max-width: 480px) {
+  .header-title-area h1 { font-size: 1.02rem; }
+  .header-btn { font-size: 0.76rem; padding: 0.5rem 0.7rem; }
+  .panel { padding: 1rem 0.9rem 1.2rem; }
+}

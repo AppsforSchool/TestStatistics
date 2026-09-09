@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>得点分析 | 定期テスト・実力テスト</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BIZ+UDGothic:wght@400;700&family=Signika+Negative:wght@400;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="appDialogStyle.css">
+</head>
+<body>
+
+<header id="app-header">
+  <div class="header-inner">
+    <div class="header-title-area">
+      <p class="header-eyebrow">得点表</p>
+      <h1>テスト結果分析</h1>
+    </div>
+    <div class="header-actions">
+      <button id="export-btn" class="header-btn" type="button">書き出す</button>
+      <label class="header-btn header-btn-file">
+        読み込む
+        <input type="file" id="import-input" accept="application/json" hidden>
+      </label>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============ 入力エリア ============ -->
+  <section class="panel" id="input-panel">
+    <div class="test-tabs" id="test-tabs"></div>
+
+    <div class="input-card">
+      <div class="input-card-head">
+        <h2 id="input-card-title">前期中間テスト</h2>
+        <span id="save-indicator" class="save-indicator">保存済み</span>
+      </div>
+
+      <table class="input-table">
+        <thead>
+          <tr>
+            <th class="col-subject">教科</th>
+            <th class="col-num">得点</th>
+            <th class="col-num">平均点</th>
+          </tr>
+        </thead>
+        <tbody id="input-table-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ このテストの得点表 ============ -->
+  <section class="panel">
+    <h2 class="panel-title" id="detail-title">得点表　前期中間テスト</h2>
+    <div class="table-scroll">
+      <table class="score-table" id="detail-table">
+        <thead>
+          <tr>
+            <th class="col-subject">教科</th>
+            <th class="col-num">得点</th>
+            <th class="col-num">失点</th>
+            <th class="col-num">平均</th>
+            <th class="col-num">平均との差</th>
+            <th class="col-num">割合</th>
+          </tr>
+        </thead>
+        <tbody id="detail-table-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 総合結果 ============ -->
+  <section class="panel">
+    <h2 class="panel-title">得点表　総合結果</h2>
+    <p class="panel-hint">保健体育・全合計は、期末テストの列のみ集計されます。</p>
+    <div class="table-scroll">
+      <table class="score-table overall-table" id="overall-table">
+        <thead>
+          <tr id="overall-head-row">
+            <th class="col-subject">教科</th>
+          </tr>
+        </thead>
+        <tbody id="overall-table-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ データ管理 ============ -->
+  <section class="panel data-panel">
+    <h2 class="panel-title">データの保存について</h2>
+    <p class="panel-hint">
+      入力したデータはこの端末のブラウザ内(ローカルストレージ)に自動保存されます。
+      機種変更やブラウザのデータ消去に備えて、「書き出す」でJSONファイルを保存しておくことをおすすめします。
+      「読み込む」でJSONファイルからデータを復元できます。
+    </p>
+    <button id="reset-btn" class="danger-btn" type="button">すべてのデータを削除</button>
+  </section>
+
+</main>
+
+<footer>
+  <p>入力したデータはサーバーに送信されず、この端末の中だけで保存されます。</p>
+</footer>
+
+<!-- ============ AppDialog（alert/confirm代替） ============ -->
+<div id="app-dialog-modal" class="modal-overlay hidden">
+  <div class="modal-content app-dialog-content">
+    <p id="app-dialog-title" class="app-dialog-title hidden"></p>
+    <p id="app-dialog-message" class="app-dialog-message"></p>
+    <div class="app-dialog-actions">
+      <button id="app-dialog-ok-button">OK</button>
+      <button id="app-dialog-cancel-button" class="hidden">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<script src="appDialog.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
