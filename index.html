@@ -78,7 +78,7 @@
   <!-- ============ 総合結果 ============ -->
   <section class="panel">
     <h2 class="panel-title">得点表　総合結果</h2>
-    <p class="panel-hint">保健体育・全合計は、期末テストの列のみ集計されます。</p>
+    <p class="panel-hint">5教科合計は国語・社会・数学・理科・英語の合計です。保健体育・全合計は、期末テストの列のみ集計されます。</p>
     <div class="table-scroll">
       <table class="score-table overall-table" id="overall-table">
         <thead>
@@ -89,6 +89,17 @@
         <tbody id="overall-table-body"></tbody>
       </table>
     </div>
+  </section>
+
+  <!-- ============ グラフ ============ -->
+  <section class="panel">
+    <h2 class="panel-title">グラフで見る</h2>
+    <div class="chart-tabs" id="chart-type-tabs"></div>
+    <div class="chart-tabs chart-subject-tabs hidden" id="chart-subject-tabs"></div>
+    <div class="chart-canvas-wrap">
+      <canvas id="main-chart" height="320"></canvas>
+    </div>
+    <p class="panel-hint chart-empty-hint hidden" id="chart-empty-hint">まだ得点が入力されていないため、グラフを表示できません。</p>
   </section>
 
   <!-- ============ データ管理 ============ -->
@@ -120,6 +131,8 @@
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <script src="appDialog.js"></script>
 <script src="script.js"></script>
 </body>

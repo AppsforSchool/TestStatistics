@@ -296,6 +296,26 @@ footer p {
 .overall-table td.stat-cell { background: #f6f7fb; font-weight: 700; }
 
 /* ==========================================================
+   グラフ
+   ========================================================== */
+.chart-tabs {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 0.6rem;
+  scrollbar-width: thin;
+}
+.chart-tabs .test-tab { flex-shrink: 0; }
+.chart-subject-tabs { margin-top: -0.15rem; }
+.chart-subject-tabs .test-tab { font-size: 0.78rem; padding: 0.42rem 0.75rem; }
+.chart-canvas-wrap {
+  position: relative;
+  width: 100%;
+  min-height: 260px;
+}
+.chart-empty-hint { margin-top: 0.5rem; margin-bottom: 0; text-align: center; }
+
+/* ==========================================================
    データ管理パネル
    ========================================================== */
 .danger-btn {

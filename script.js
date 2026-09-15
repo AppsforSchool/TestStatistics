@@ -24,6 +24,14 @@
     "英語": "s-eigo",
     "保健体育": "s-hoken",
   };
+  const SUBJECT_COLOR_HEX = {
+    "国語": "#d8434b",
+    "社会": "#b93fb3",
+    "数学": "#2f7fd6",
+    "理科": "#2f9e57",
+    "英語": "#dd8b2e",
+    "保健体育": "#2aa3ae",
+  };
   const STORAGE_KEY = "teikiTestScores_v1";
 
   const isFinalTest = (name) => name.includes("期末");
@@ -137,8 +145,7 @@
       scoreInput.value = entry.score === null ? "" : entry.score;
       scoreInput.addEventListener("input", (e) => {
         setEntry(currentTest, subject, "score", e.target.value);
-        renderDetail();
-        renderOverall();
+        refreshDependentViews();
       });
       scoreTd.appendChild(scoreInput);
       row.appendChild(scoreTd);
@@ -152,8 +159,7 @@
       avgInput.value = entry.average === null ? "" : entry.average;
       avgInput.addEventListener("input", (e) => {
         setEntry(currentTest, subject, "average", e.target.value);
-        renderDetail();
-        renderOverall();
+        refreshDependentViews();
       });
       avgTd.appendChild(avgInput);
       row.appendChild(avgTd);
@@ -171,14 +177,21 @@
     body.innerHTML = "";
 
     const subjects = subjectsForTest(currentTest);
-    let totalScore = 0, totalAvg = 0;
+    const final = isFinalTest(currentTest);
+    let totalScore = 0, totalAvg = 0; // 5教科（基本教科）のみ
+    let hokenScore = null, hokenAvg = null;
 
     subjects.forEach((subject) => {
       const { score, average } = getEntry(currentTest, subject);
-      const s = score ?? 0;
       const a = average ?? 0;
-      totalScore += s;
-      totalAvg += a;
+
+      if (subject === EXTRA_SUBJECT) {
+        hokenScore = score;
+        hokenAvg = average;
+      } else {
+        totalScore += score ?? 0;
+        totalAvg += a;
+      }
 
       const row = el("tr");
       const nameTd = el("td");
@@ -207,9 +220,9 @@
       body.appendChild(row);
     });
 
-    const n = subjects.length;
+    const n = BASE_SUBJECTS.length;
     const totalRow = el("tr", "row-total");
-    totalRow.appendChild(el("td", null, "合計"));
+    totalRow.appendChild(el("td", null, "5教科合計"));
     totalRow.appendChild(makeCell(fmt0(totalScore), true, false));
     totalRow.appendChild(makeCell(fmt0(totalScore - 100 * n), true, false));
     totalRow.appendChild(makeCell(fmt1(totalAvg), true, false));
@@ -218,13 +231,29 @@
     body.appendChild(totalRow);
 
     const avgRow = el("tr", "row-avg");
-    avgRow.appendChild(el("td", null, "平均"));
+    avgRow.appendChild(el("td", null, "5教科平均"));
     avgRow.appendChild(makeCell(fmt1(totalScore / n), true, false));
     avgRow.appendChild(makeCell(fmt1(totalScore / n - 100), true, false));
     avgRow.appendChild(makeCell(fmt1(totalAvg / n), true, false));
     avgRow.appendChild(makeCell(fmt1((totalScore - totalAvg) / n), true, false));
     avgRow.appendChild(makeCell("-", true, true));
     body.appendChild(avgRow);
+
+    if (final) {
+      const nAll = n + 1;
+      const allScore = totalScore + (hokenScore ?? 0);
+      const allAvg = totalAvg + (hokenAvg ?? 0);
+      const hasAny = hokenScore !== null || totalScore > 0;
+
+      const allRow = el("tr", "row-total");
+      allRow.appendChild(el("td", null, "全合計（5教科＋保健体育）"));
+      allRow.appendChild(makeCell(fmt0(allScore), true, false));
+      allRow.appendChild(makeCell(fmt0(allScore - 100 * nAll), true, false));
+      allRow.appendChild(makeCell(fmt1(allAvg), true, false));
+      allRow.appendChild(makeCell(fmt1(allScore - allAvg), true, false));
+      allRow.appendChild(makeCell(hasAny && allAvg ? fmt1((allScore / allAvg) * 100) + "%" : "-", true, !(hasAny && allAvg)));
+      body.appendChild(allRow);
+    }
   }
 
   function makeCell(text, numeric, dash) {
@@ -271,8 +300,8 @@
       return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
     });
 
-    body.appendChild(buildOverallRow("合計", null, totalPerTest, TESTS.map(() => true), "row-total", true));
-    body.appendChild(buildOverallRow("平均", null, avgPerTest, TESTS.map(() => true), "row-avg", true, true));
+    body.appendChild(buildOverallRow("5教科合計", null, totalPerTest, TESTS.map(() => true), "row-total", true));
+    body.appendChild(buildOverallRow("5教科平均", null, avgPerTest, TESTS.map(() => true), "row-avg", true, true));
 
     // 保健体育・全合計（期末テストのみ）
     const finalMask = TESTS.map((t) => isFinalTest(t));
@@ -330,6 +359,258 @@
   }
 
   /* ========================================================
+     グラフ
+     ======================================================== */
+  const CHART_TYPE_LABELS = {
+    stacked: "得点の内訳",
+    ratio: "平均との割合",
+    subject: "教科別の推移",
+  };
+  let currentChartType = "stacked";
+  let currentChartSubject = BASE_SUBJECTS[0];
+  let chartInstance = null;
+  let datalabelsRegistered = false;
+
+  function ensureDatalabelsRegistered() {
+    if (datalabelsRegistered) return;
+    if (typeof Chart !== "undefined" && typeof ChartDataLabels !== "undefined") {
+      Chart.register(ChartDataLabels);
+      Chart.defaults.font.family = "'BIZ UDGothic', sans-serif";
+      datalabelsRegistered = true;
+    }
+  }
+
+  function renderChartTabs() {
+    const wrap = document.getElementById("chart-type-tabs");
+    wrap.innerHTML = "";
+    Object.entries(CHART_TYPE_LABELS).forEach(([key, label]) => {
+      const btn = el("button", "test-tab", label);
+      btn.type = "button";
+      if (key === currentChartType) btn.classList.add("active");
+      btn.addEventListener("click", () => {
+        currentChartType = key;
+        renderChartTabs();
+        renderChartSubjectTabs();
+        renderChart();
+      });
+      wrap.appendChild(btn);
+    });
+  }
+
+  function renderChartSubjectTabs() {
+    const wrap = document.getElementById("chart-subject-tabs");
+    const show = currentChartType === "subject";
+    wrap.classList.toggle("hidden", !show);
+    if (!show) return;
+    wrap.innerHTML = "";
+    BASE_SUBJECTS.forEach((subject) => {
+      const btn = el("button", "test-tab", subject);
+      btn.type = "button";
+      if (subject === currentChartSubject) btn.classList.add("active");
+      btn.addEventListener("click", () => {
+        currentChartSubject = subject;
+        renderChartSubjectTabs();
+        renderChart();
+      });
+      wrap.appendChild(btn);
+    });
+  }
+
+  function testsWithAnyScore(subjectList) {
+    return TESTS.filter((t) => subjectList.some((s) => getEntry(t, s).score !== null));
+  }
+
+  function buildStackedConfig() {
+    const labels = testsWithAnyScore(BASE_SUBJECTS);
+    if (!labels.length) return null;
+    const datasets = BASE_SUBJECTS.map((subject) => ({
+      label: subject,
+      data: labels.map((t) => getEntry(t, subject).score ?? 0),
+      backgroundColor: SUBJECT_COLOR_HEX[subject],
+      stack: "total",
+    }));
+    return {
+      type: "bar",
+      data: { labels, datasets },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: { stacked: true, beginAtZero: true, title: { display: true, text: "5教科合計点" } },
+          y: { stacked: true },
+        },
+        plugins: {
+          legend: { position: "top" },
+          datalabels: {
+            color: "#fff",
+            font: { weight: "bold", size: 11 },
+            formatter: (v) => (v > 0 ? v : ""),
+          },
+        },
+      },
+    };
+  }
+
+  function buildRatioConfig() {
+    const labels = testsWithAnyScore(BASE_SUBJECTS);
+    if (!labels.length) return null;
+
+    const datasets = BASE_SUBJECTS.map((subject) => ({
+      label: subject,
+      data: labels.map((t) => {
+        const { score, average } = getEntry(t, subject);
+        return score !== null && average ? Math.round((score / average) * 1000) / 10 : null;
+      }),
+      borderColor: SUBJECT_COLOR_HEX[subject],
+      backgroundColor: SUBJECT_COLOR_HEX[subject],
+      spanGaps: true,
+      tension: 0.25,
+      pointRadius: 3,
+    }));
+
+    const totalData = labels.map((t) => {
+      const scores = BASE_SUBJECTS.map((s) => getEntry(t, s).score).filter((v) => v !== null);
+      const avgs = BASE_SUBJECTS.map((s) => getEntry(t, s).average).filter((v) => v !== null);
+      if (!scores.length || !avgs.length) return null;
+      const ts = scores.reduce((a, b) => a + b, 0);
+      const ta = avgs.reduce((a, b) => a + b, 0);
+      return ta ? Math.round((ts / ta) * 1000) / 10 : null;
+    });
+    datasets.push({
+      label: "5教科合計",
+      data: totalData,
+      borderColor: "#333b55",
+      backgroundColor: "#333b55",
+      borderWidth: 3,
+      spanGaps: true,
+      tension: 0.25,
+      pointRadius: 3,
+    });
+    datasets.push({
+      label: "点数平均(100%)",
+      data: labels.map(() => 100),
+      borderColor: "#9aa0b4",
+      backgroundColor: "#9aa0b4",
+      borderDash: [6, 4],
+      borderWidth: 1.5,
+      pointRadius: 0,
+      spanGaps: true,
+      datalabels: { display: false },
+    });
+
+    return {
+      type: "line",
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { y: { ticks: { callback: (v) => v + "%" } } },
+        plugins: {
+          legend: { position: "top" },
+          datalabels: {
+            align: "top",
+            font: { size: 10 },
+            formatter: (v) => (v === null || v === undefined ? "" : v + "%"),
+          },
+        },
+      },
+    };
+  }
+
+  function buildSubjectConfig(subject) {
+    const labels = TESTS.filter((t) => {
+      const e = getEntry(t, subject);
+      return e.score !== null || e.average !== null;
+    });
+    if (!labels.length) return null;
+    const scoreData = labels.map((t) => getEntry(t, subject).score);
+    const avgData = labels.map((t) => getEntry(t, subject).average);
+    return {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: `${subject}（得点）`,
+            data: scoreData,
+            borderColor: SUBJECT_COLOR_HEX[subject],
+            backgroundColor: SUBJECT_COLOR_HEX[subject],
+            borderWidth: 3,
+            spanGaps: true,
+            tension: 0.2,
+            pointRadius: 4,
+          },
+          {
+            label: `${subject}（平均点）`,
+            data: avgData,
+            borderColor: "#b7bcd1",
+            backgroundColor: "#b7bcd1",
+            borderWidth: 2,
+            borderDash: [5, 3],
+            spanGaps: true,
+            tension: 0.2,
+            pointRadius: 3,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { y: { beginAtZero: true, suggestedMax: 100 } },
+        plugins: {
+          legend: { position: "top" },
+          datalabels: {
+            align: "top",
+            font: { size: 10 },
+            formatter: (v) => (v === null || v === undefined ? "" : v),
+          },
+        },
+      },
+    };
+  }
+
+  function renderChart() {
+    const canvas = document.getElementById("main-chart");
+    const emptyHint = document.getElementById("chart-empty-hint");
+    if (!canvas) return;
+
+    if (chartInstance) {
+      chartInstance.destroy();
+      chartInstance = null;
+    }
+
+    if (typeof Chart === "undefined") {
+      emptyHint.textContent = "グラフライブラリを読み込めませんでした。インターネット接続をご確認ください。";
+      emptyHint.classList.remove("hidden");
+      canvas.classList.add("hidden");
+      return;
+    }
+    ensureDatalabelsRegistered();
+
+    let config = null;
+    if (currentChartType === "stacked") config = buildStackedConfig();
+    else if (currentChartType === "ratio") config = buildRatioConfig();
+    else config = buildSubjectConfig(currentChartSubject);
+
+    if (!config) {
+      emptyHint.textContent = "まだ得点が入力されていないため、グラフを表示できません。";
+      emptyHint.classList.remove("hidden");
+      canvas.classList.add("hidden");
+      return;
+    }
+    emptyHint.classList.add("hidden");
+    canvas.classList.remove("hidden");
+    chartInstance = new Chart(canvas.getContext("2d"), config);
+  }
+
+  function renderCharts() {
+    renderChartTabs();
+    renderChartSubjectTabs();
+    renderChart();
+  }
+
+  /* ========================================================
      全体描画
      ======================================================== */
   function renderAll() {
@@ -337,6 +618,13 @@
     renderInput();
     renderDetail();
     renderOverall();
+    renderCharts();
+  }
+
+  function refreshDependentViews() {
+    renderDetail();
+    renderOverall();
+    renderChart();
   }
 
   /* ========================================================
